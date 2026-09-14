@@ -16,7 +16,6 @@ import {
   invalidateAnalysisPassAtPath,
   needsAnalysisPass,
 } from "./services/analysis";
-import { getLicenseStatus } from "./services/settings";
 import log, { syncLog } from "./utils/log";
 import type { SyncStatus } from "@shared/types";
 
