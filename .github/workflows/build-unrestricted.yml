@@ -24,11 +24,14 @@ jobs:
           from pathlib import Path
           p = Path('src/main/sync-manager.ts')
           s = p.read_text()
-          old = 'const licensed = mode === "sync" && getLicenseStatus().active;'
+          old = 'import { getLicenseStatus } from "./services/settings";\n'
+          if old in s:
+              s = s.replace(old, '', 1)
+          old = 'const licensed = mode === "sync"; // Local build: unrestricted mailbox sync; no paid license required.'
           new = 'const licensed = mode === "sync"; // Local build: unrestricted mailbox sync; no paid license required.'
           if old not in s:
-              raise SystemExit('Expected license gate not found in sync-manager.ts')
-          p.write_text(s.replace(old, new, 1))
+              raise SystemExit('Expected sync license gate not found in sync-manager.ts')
+          p.write_text(s)
           PY
           grep -n 'const licensed =' src/main/sync-manager.ts
 
