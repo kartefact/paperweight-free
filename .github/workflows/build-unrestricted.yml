@@ -30,8 +30,6 @@ jobs:
               raise SystemExit('Expected license gate not found in sync-manager.ts')
           p.write_text(s.replace(old, new, 1))
           PY
-
-          # Keep the source self-documenting: this build treats every sync worker as licensed.
           grep -n 'const licensed =' src/main/sync-manager.ts
 
       - name: Commit source modification
@@ -51,6 +49,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Typecheck
+        run: yarn typecheck
 
       - name: Build
         run: yarn dist:linux
