@@ -166,7 +166,7 @@ function startWorker(key: string, mode: WorkerMode): boolean {
   const enforcementDbPath = is.dev
     ? join(app.getAppPath(), "resources", "enforcement.db")
     : join(process.resourcesPath, "enforcement.db");
-  const licensed = mode === "sync" && getLicenseStatus().active;
+  const licensed = mode === "sync"; // Local build: unrestricted mailbox sync; no paid license required.
 
   if (mode === "sync") {
     syncLog.info(
