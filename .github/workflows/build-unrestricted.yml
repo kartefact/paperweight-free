@@ -1,0 +1,75 @@
+name: Unrestricted local build
+
+on:
+  push:
+    branches: [unrestricted-local]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove freemium sync gate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/main/sync-manager.ts')
+          s = p.read_text()
+          old = 'const licensed = mode === "sync" && getLicenseStatus().active;'
+          new = 'const licensed = mode === "sync"; // Local build: unrestricted mailbox sync; no paid license required.'
+          if old not in s:
+              raise SystemExit('Expected license gate not found in sync-manager.ts')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
+          # Keep the source self-documenting: this build treats every sync worker as licensed.
+          grep -n 'const licensed =' src/main/sync-manager.ts
+
+      - name: Commit source modification
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/sync-manager.ts
+          git diff --cached --quiet || git commit -m 'feat: remove freemium sync restriction for local build'
+          git push origin unrestricted-local
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn dist:linux
+
+      - name: Verify artifacts
+        shell: bash
+        run: |
+          test -n "$(find dist -maxdepth 1 -type f \( -name '*.AppImage' -o -name '*.deb' \) -print -quit)"
+          ls -lh dist
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          tag="v$(node -p "require('./package.json').version")-unrestricted"
+          gh release delete "$tag" --yes 2>/dev/null || true
+          git tag -f "$tag"
+          git push origin "$tag" --force
+          gh release create "$tag" dist/* \
+            --title "Paperweight $(node -p "require('./package.json').version") — Unrestricted Local Build" \
+            --notes "Local/community build of Paperweight with the paid-license sync restriction removed. The application treats all sync workers as licensed, enabling the existing full historical backfill. This build is not an official upstream release."
