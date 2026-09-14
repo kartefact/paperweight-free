@@ -66,8 +66,8 @@ export const DEFAULT_CATEGORY: CategoryId = "unknown";
 export const DEFAULT_RISK: RiskLevel = "unknown";
 
 // Incremental sync windows
-export const FREE_TIER_SYNC_DAYS = 90;    // Free tier: 90-day window
-export const LICENSED_SYNC_DAYS = 365;    // Licensed: 1-year window on first run
+export const FREE_TIER_SYNC_DAYS = 36500;   // Local build: effectively unlimited first-run window
+export const LICENSED_SYNC_DAYS = 36500;    // Local build: effectively unlimited first-run window
 
 // Message processing
 export const BODY_PREVIEW_LENGTH = 150;
@@ -98,7 +98,6 @@ export interface Company {
   name: string;
   address?: string;
   web?: string;
-  webform?: string;
   email?: string;
   phone?: string;
   categories?: string[];
@@ -498,93 +497,4 @@ export interface StorageBreakdown {
   /** Private Electron/Chromium framework bundled with the app — fixed baseline. */
   runtimeBytes: number;
   totalBytes: number;
-}
-
-export interface ServerConfig {
-  imap: {
-    host: string;
-    port: number;
-    tls: boolean;
-    allowSelfSigned: boolean;
-  };
-  smtp?: {
-    host: string;
-    port: number;
-    tls: boolean;
-  };
-}
-
-export interface AccountInfo {
-  email: string;
-  providerType: string;
-  registeredAt?: number;
-  lastSyncAt?: number;
-  totalMessages: number;
-  /** IMAP+SMTP server config, sans credentials. Present only for IMAP accounts. */
-  server?: ServerConfig;
-}
-
-export interface Settings {
-  providerType: string;
-  autoLaunch?: boolean;
-  launchMinimized?: boolean;
-  userName?: string;
-  colorTheme?: "dim" | "silk";
-}
-
-export interface LicenseStatus {
-  active: boolean;
-  tier?: "test" | "lifetime";
-  expiresAt?: string;
-  key?: string;
-  portalUrl?: string;
-}
-
-export interface SupportInfo {
-  appVersion: string;
-  electronVersion: string;
-  chromeVersion: string;
-  nodeVersion: string;
-  os: string;
-  arch: string;
-  platform: string;
-  providerType: string;
-  licenseActive: boolean;
-  totalMessages: number;
-  lastSyncAt?: number;
-  logPath: string;
-}
-
-// Infrastructure
-
-export interface EmailConnection {
-  type: "gmail-oauth" | "imap" | "microsoft-oauth";
-  email: string;
-}
-
-export interface ImapConfig {
-  host: string;
-  port: number;
-  tls: boolean;
-  username: string;
-  password: string;
-  allowSelfSigned?: boolean;
-  smtp?: {
-    host: string;
-    port: number;
-    tls: boolean;
-  };
-}
-
-export interface SyncStatus {
-  running: boolean;
-  progress: number;
-  total: number;
-  message: string;
-  analysisPending?: boolean;
-  error?: string;
-  lastSyncAt?: number;
-  phase?: "incremental" | "historical";
-  historicalCursor?: number;  // epoch ms of oldest date reached in historical sync
-  historicalDone?: boolean;
 }
